@@ -4,51 +4,44 @@ This nuget contains a .NET 8 class library repository application to connect to 
 
 ## Getting Started
 
-1. Create a repository from the [GitHub template](https://docs.github.com/en/enterprise/2.22/user/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) and then clone it locally to your machine.
+This is a nuget for data access. It provides a streamlined approach for integrating Azure Table Storage operations into .NET applications. It leverages Azure's managed identity for secure and simplified access, and offers a generic repository pattern for CRUD operations on Table Storage tables.
 
-1. In the **ApiIsolated** folder, copy `local.settings.example.json` to `local.settings.json`
+**Overview**
 
-1. Continue using either Visual Studio or Visual Studio Code.
+    - Create a table in the storage account
+    - Insert an entity into the table
+    - Insert or replace an entity into the table (Upsert)
+    - Get an entity from the table by partition key and row key
+    - Update an entity in the table
+    - Delete an entity from the table by partition key and row key
+    - Delete a table from the storage account
+    - Get entities from the table by query
 
-### Visual Studio 2022
+**Installation**
+dotnet add package CaptainOath.DataStore
 
-Once you clone the project, open the solution in the latest release of [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) with the Azure workload installed, and follow these steps:
 
-1. Right-click on the solution and select **Set Startup Projects...**.
+**Register Service**
+    `services.AddTableStorageClient("accountEndPointUrl");`
 
-1. Select **Multiple startup projects** and set the following actions for each project:
-    - *Api* - **Start**
-    - *Client* - **Start**
-    - *Shared* - None
+**Using the Interface**
+    `public class MyCosmosDbService
+     {
+        private readonly ITableStorageRepository<TableEntity> _repository;
 
-1. Press **F5** to launch both the client application and the Functions API app.
+        public MyTableStorageService(ITableStorageRepository<TableEntity> repository)
+        {
+            _repository = repository;
+        }
 
-### Visual Studio Code with Azure Static Web Apps CLI for a better development experience (Optional)
+        public async Task CreateMyEntityAsync(string tableName)
+        {
+             await _repository.CreateTableAsync(tableName);
+        }
 
-1. Install the [Azure Static Web Apps CLI](https://www.npmjs.com/package/@azure/static-web-apps-cli) and [Azure Functions Core Tools CLI](https://www.npmjs.com/package/azure-functions-core-tools).
-
-1. Open the folder in Visual Studio Code.
-
-1. Delete file `Client/wwwroot/appsettings.Development.json`
-
-1. In the VS Code terminal, run the following command to start the Static Web Apps CLI, along with the Blazor WebAssembly client application and the Functions API app:
-
-    ```bash
-    swa start http://localhost:5000 --api-location http://localhost:7071
-    ```
-
-    The Static Web Apps CLI (`swa`) starts a proxy on port 4280 that will forward static site requests to the Blazor server on port 5000 and requests to the `/api` endpoint to the Functions server. 
-
-1. Open a browser and navigate to the Static Web Apps CLI's address at `http://localhost:4280`. You'll be able to access both the client application and the Functions API app in this single address. When you navigate to the "Fetch Data" page, you'll see the data returned by the Functions API app.
-
-1. Enter Ctrl-C to stop the Static Web Apps CLI.
-
-## Template Structure
-
-- **Client**: The Blazor WebAssembly sample application
-- **Api**: A C# Azure Functions API, which the Blazor application will call
-- **Shared**: A C# class library with a shared data model between the Blazor and Functions application
-
-## Deploy to Azure Static Web Apps
-
-This application can be deployed to [Azure Static Web Apps](https://docs.microsoft.com/azure/static-web-apps), to learn how, check out [our quickstart guide](https://aka.ms/blazor-swa/quickstart).
+        public async Task InsertMyEntityAsync(string tableName, TableEntity entity)
+        {
+             await _repository.InsertTableEntityAsync(tableName, entity);
+        }
+     }
+    `

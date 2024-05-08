@@ -18,7 +18,7 @@ public class BlobStorageRepository : IBlobStorageRepository
         _blobServiceClient = blobServiceClient;
     }
 
-    public async Task<bool> DoesBlobExist(string fileName, string blobContainerName)
+    public async Task<bool> DoesBlobExistAsync(string fileName, string blobContainerName)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
@@ -26,7 +26,16 @@ public class BlobStorageRepository : IBlobStorageRepository
         return await blobClient.ExistsAsync();
     }
 
-    public async Task<string> DownloadBlob(string fileName, string blobContainerName)
+    public async Task<Stream> DownloadBlobAsStreamAsync(string fileName, string blobContainerName)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        var download = await blobClient.DownloadStreamingAsync();
+        return download.Value.Content;
+    }
+
+    public async Task<string> DownloadBlobAsStringAsync(string fileName, string blobContainerName)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
@@ -36,16 +45,29 @@ public class BlobStorageRepository : IBlobStorageRepository
         return downloadedData;
     }
 
-    public async Task UploadBlob(string fileName, string rawJson, string blobContainerName)
+    public async Task<string> UploadBlobAsync(string fileName, string content, string blobContainerName, string contentType = "text/plain", IDictionary<string, string> metadata = null)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
-
-        using var ms = new MemoryStream(Encoding.UTF8.GetBytes(rawJson));
-        await blobClient.UploadAsync(ms, overwrite: true);
+        
+        await containerClient.CreateIfNotExistsAsync();
+        
+        using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+        
+        var blobHttpHeaders = new BlobHttpHeaders { ContentType = contentType };
+        
+        await blobClient.UploadAsync(memoryStream, new BlobUploadOptions
+        {
+            HttpHeaders = blobHttpHeaders,
+            Metadata = metadata
+        });
+        
+        _logger.LogInformation($"Uploaded blob '{fileName}' to container '{blobContainerName}'.");
+        
+        return blobClient.Uri.AbsoluteUri;
     }
 
-    public async  Task<string> UploadAttachmentAsync(IFormFile file, string blobContainerName)
+    public async Task<string> UploadAttachmentAsync(IFormFile file, string blobContainerName)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
 

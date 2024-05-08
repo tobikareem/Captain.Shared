@@ -1,5 +1,5 @@
-﻿using Azure.Data.Tables;
-using Azure.Identity;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
 using CaptainOath.DataStore.Interface;
 using CaptainOath.DataStore.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,18 +10,13 @@ public static class BlobStorageExtension
 {
     public static IServiceCollection AddBlobStorageClient(this IServiceCollection services, string accountEndPointUrl)
     {
-        services.AddScoped<ITableStorageRepository<TableEntity>, TableStorageRepository<TableEntity>>();
-
+        services.AddScoped<IBlobStorageRepository, BlobStorageRepository>();
 
         services.AddSingleton(_ =>
         {
-
             var credentials = new DefaultAzureCredential();
-
-            var tableServiceClient = new TableServiceClient(new Uri(accountEndPointUrl), credentials);
-
-            return tableServiceClient;
-
+            var blobServiceClient = new BlobServiceClient(new Uri(accountEndPointUrl), credentials);
+            return blobServiceClient;
 
         });
 

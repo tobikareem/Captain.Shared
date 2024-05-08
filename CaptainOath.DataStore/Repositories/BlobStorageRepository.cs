@@ -7,20 +7,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace CaptainOath.DataStore.Repositories;
 
-public class BlobStorageRepository : IBlobStorageRepository
+public class BlobStorageRepository(ILogger<BlobStorageRepository> logger, BlobServiceClient blobServiceClient) : IBlobStorageRepository
 {
-    private readonly ILogger<BlobStorageRepository> _logger;
-    private readonly BlobServiceClient _blobServiceClient;
-
-    public BlobStorageRepository(ILogger<BlobStorageRepository> logger, BlobServiceClient blobServiceClient)
-    {
-        _logger = logger;
-        _blobServiceClient = blobServiceClient;
-    }
-
     public async Task<bool> DoesBlobExistAsync(string fileName, string blobContainerName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
 
         return await blobClient.ExistsAsync();
@@ -28,7 +19,7 @@ public class BlobStorageRepository : IBlobStorageRepository
 
     public async Task<Stream> DownloadBlobAsStreamAsync(string fileName, string blobContainerName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
 
         var download = await blobClient.DownloadStreamingAsync();
@@ -37,7 +28,7 @@ public class BlobStorageRepository : IBlobStorageRepository
 
     public async Task<string> DownloadBlobAsStringAsync(string fileName, string blobContainerName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
 
         BlobDownloadResult downloadResult = await blobClient.DownloadContentAsync();
@@ -47,7 +38,7 @@ public class BlobStorageRepository : IBlobStorageRepository
 
     public async Task<string> UploadBlobAsync(string fileName, string content, string blobContainerName, string contentType = "text/plain", IDictionary<string, string> metadata = null)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
         var blobClient = containerClient.GetBlobClient(fileName);
         
         await containerClient.CreateIfNotExistsAsync();
@@ -62,14 +53,14 @@ public class BlobStorageRepository : IBlobStorageRepository
             Metadata = metadata
         });
         
-        _logger.LogInformation($"Uploaded blob '{fileName}' to container '{blobContainerName}'.");
+        logger.LogInformation($"Uploaded blob '{fileName}' to container '{blobContainerName}'.");
         
         return blobClient.Uri.AbsoluteUri;
     }
 
     public async Task<string> UploadAttachmentAsync(IFormFile file, string blobContainerName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+        var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
         await containerClient.CreateIfNotExistsAsync();
 
@@ -80,7 +71,7 @@ public class BlobStorageRepository : IBlobStorageRepository
             await blobClient.UploadAsync(stream, overwrite: true);
         }
 
-        _logger.LogInformation($"File {file.FileName} uploaded to Blob storage.");
+        logger.LogInformation($"File {file.FileName} uploaded to Blob storage.");
 
         return blobClient.Uri.AbsoluteUri;
     }
@@ -98,11 +89,8 @@ public class BlobStorageRepository : IBlobStorageRepository
         {
             try
             {
-                // Ensure you have a container name specified in your configuration
-                var containerClient = _blobServiceClient.GetBlobContainerClient(blobContainerName);
+                var containerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
-                // If the container does not exist, create it
-                // Note: It's not efficient to check this every time you upload a blob, consider handling container creation separately
                 await containerClient.CreateIfNotExistsAsync();
 
                 var blobClient = containerClient.GetBlobClient(file.FileName);
@@ -112,13 +100,13 @@ public class BlobStorageRepository : IBlobStorageRepository
                     await blobClient.UploadAsync(stream, overwrite: true);
                 }
 
-                _logger.LogInformation($"File {file.FileName} uploaded to Blob storage.");
+                logger.LogInformation($"File {file.FileName} uploaded to Blob storage.");
 
                 uris.Add(blobClient.Uri.AbsoluteUri);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while uploading file {file.FileName}. Error: {ex.Message}");
+                logger.LogError($"An error occurred while uploading file {file.FileName}. Error: {ex.Message}");
             }
         }
 

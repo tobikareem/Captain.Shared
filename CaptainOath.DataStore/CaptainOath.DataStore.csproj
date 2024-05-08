@@ -9,7 +9,7 @@
     <Product>CaptainOath Collections</Product>
     <Description>Repository class using Azure manage identity to connect to table storage</Description>
     <PackageProjectUrl>https://github.com/tobikareem/Captain.Shared</PackageProjectUrl>
-    <PackageOutputPath>C:\Projects\Pacakages</PackageOutputPath>
+    <PackageOutputPath>C:\Project.All\Pool360NugetHub</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

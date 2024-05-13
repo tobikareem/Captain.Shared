@@ -22,4 +22,20 @@ public static class BlobStorageExtension
 
         return services;
     }
+
+    public static IServiceCollection AddBlobStorageUserAssignedManagedIdentity(this IServiceCollection services, string accountEndPointUrl, string userAssignedManagedClientId)
+    {
+        services.AddScoped<IBlobStorageRepository, BlobStorageRepository>();
+
+        services.AddSingleton(_ =>
+        {
+            var credentials = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = userAssignedManagedClientId });
+            var blobServiceClient = new BlobServiceClient(new Uri(accountEndPointUrl), credentials);
+            return blobServiceClient;
+
+        });
+
+        return services;
+    }
+
 }

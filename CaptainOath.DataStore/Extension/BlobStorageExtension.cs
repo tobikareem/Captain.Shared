@@ -72,4 +72,33 @@ public static class BlobStorageExtension
         return services;
     }
 
+    public static IServiceCollection AddBlobStorageContainerLocal(this IServiceCollection services, string accountEndPointUrl, string containerName)
+    {
+        services.AddScoped<IBlobStorageRepository, BlobContainerRepository>();
+
+        services.AddSingleton(_ =>
+        {
+            var credentials = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ExcludeManagedIdentityCredential = true });
+            var blobServiceClient = new BlobServiceClient(new Uri(accountEndPointUrl), credentials);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            return containerClient;
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddBlobClientUri(this IServiceCollection services, string blobUri)
+    {
+        services.AddScoped<IBlobClientRepository, BlobClientRepository>();
+
+        services.AddSingleton(_ =>
+        {
+            var blobClient = new BlobClient(new Uri(blobUri));
+            return blobClient;
+        });
+
+        return services;
+    }
+
+
 }

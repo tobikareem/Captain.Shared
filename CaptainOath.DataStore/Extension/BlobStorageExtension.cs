@@ -100,5 +100,18 @@ public static class BlobStorageExtension
         return services;
     }
 
+    public static IServiceCollection AddBlobStorageClientUsingConnectionString(this IServiceCollection services, string connectionString)
+    {
+        services.AddScoped<IBlobStorageRepository, BlobStorageRepository>();
+
+        services.AddSingleton(_ =>
+        {
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            return blobServiceClient;
+        });
+
+        return services;
+    }
+
 
 }

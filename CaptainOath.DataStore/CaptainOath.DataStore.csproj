@@ -10,7 +10,7 @@
     <Description>Repository class using Azure manage identity to connect to table storage</Description>
     <PackageProjectUrl>https://github.com/tobikareem/Captain.Shared</PackageProjectUrl>
     <PackageOutputPath>C:\Project.All\Pool360NugetHub</PackageOutputPath>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>

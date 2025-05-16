@@ -71,4 +71,17 @@ public class TableStorageRepository<T> : ITableStorageRepository<T> where T : cl
         var results = await queryResult.AsPages().ToListAsync();
         return results.SelectMany(page => page.Values);
     }
+
+    public async Task<(List<T> Items, string ContinuationToken)> GetTableEntitiesPagedAsync(string tableName, string query, int maxResults, string continuationToken = null)
+    {
+        var client = _tableServiceClient.GetTableClient(tableName);
+
+        var queryFilter = string.IsNullOrWhiteSpace(query)
+            ? client.QueryAsync<T>(maxPerPage: maxResults)
+            : client.QueryAsync<T>(filter: query, maxPerPage: maxResults);
+
+        var page = await queryFilter.AsPages(continuationToken, maxResults).FirstOrDefaultAsync();
+
+        return page == null ? (new List<T>(), null) : (page.Values.ToList(), page.ContinuationToken);
+    }
 }

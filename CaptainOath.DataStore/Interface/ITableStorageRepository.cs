@@ -4,7 +4,7 @@
 /// Interface for table storage
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface ITableStorageRepository <T> where T : class
+public interface ITableStorageRepository<T> where T : class
 {
     /// <summary>
     /// Create a table in the storage account
@@ -72,4 +72,14 @@ public interface ITableStorageRepository <T> where T : class
     /// <returns></returns>
     Task<IEnumerable<T>> GetTableEntitiesByQueryAsync(string tableName, string query);
 
+    /// <summary>
+    /// Get entities from the table by query with pagination
+    /// </summary>
+    /// <param name="tableName"></param>
+    /// <param name="query"></param>
+    /// <param name="maxResults"></param>
+    /// <param name="continuationToken"></param>
+    /// <returns></returns>
+
+    public Task<(List<T> Items, string ContinuationToken)> GetTableEntitiesPagedAsync(string tableName, string query, int maxResults, string continuationToken = null);
 }
